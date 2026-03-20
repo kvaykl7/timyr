@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>тимурка ❤️ с днём рождения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a14;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            width: 600px;
+            max-width: 90vw;
+            height: auto;
+            filter: drop-shadow(0 0 30px rgba(255, 100, 150, 0.5));
+        }
+
+        .message {
+            margin-top: 40px;
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #ff99aa;
+            text-shadow: 0 0 20px #ff3366, 0 0 40px #ff3366;
+            opacity: 0;
+            transition: opacity 3s ease;
+            font-family: 'Courier New', monospace;
+            text-transform: lowercase;
+        }
+
+        .message.show {
+            opacity: 1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <canvas id="heartCanvas" width="600" height="500"></canvas>
+        <div class="message" id="birthdayMessage">тимурка, с днём рождения ❤️</div>
+        <div class="footer">медленно, но с любовью</div>
+    </div>
+
+    <script>
+        // ==================== ЗВЁЗДЫ ====================
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // ==================== СЕРДЦЕ ====================
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageEl = document.getElementById('birthdayMessage');
+
+        // Математическое сердце: x = 16sin³t, y = 13cost - 5cos2t - 2cos3t - cos4t
+        const points = [];
+        const steps = 200; // больше точек = плавнее линия
+
+        for (let i = 0; i <= steps; i++) {
+            const t = (i / steps) * Math.PI * 2;
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            
+            // Масштабируем и центрируем
+            const canvasX = x * 15 + 300;
+            const canvasY = -y * 15 + 250;
+            
+            points.push({ x: canvasX, y: canvasY });
+        }
+
+        let currentStep = 0;
+        let heartFilled = false;
+        let animationFrame = null;
+
+        // Медленная отрисовка линии
+        function drawHeartLine() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем тонкие направляющие точки (едва заметно)
+            ctx.fillStyle = '#ff99aa20';
+            for (let i = 0; i < points.length; i += 5) {
+                ctx.beginPath();
+                ctx.arc(points[i].x, points[i].y, 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Рисуем основную линию сердца
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff5577';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#ff3366';
+            ctx.shadowBlur = 20;
+
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i <= currentStep && i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.stroke();
+
+            // Если дошли до конца — начинаем заливку
+            if (currentStep >= points.length - 1 && !heartFilled) {
+                heartFilled = true;
+                setTimeout(fillHeart, 800); // пауза перед заливкой
+                return;
+            }
+
+            // Медленное движение (скорость можно менять)
+            if (currentStep < points.length - 1) {
+                currentStep += 1; // чем меньше число, тем медленнее
+                animationFrame = setTimeout(() => requestAnimationFrame(drawHeartLine), 25); // 25 мс = плавно
+            }
+        }
+
+        function fillHeart() {
+            // Заливка градиентом
+            const gradient = ctx.createRadialGradient(300, 250, 10, 300, 250, 200);
+            gradient.addColorStop(0, '#ff99aa');
+            gradient.addColorStop(0.4, '#ff3366');
+            gradient.addColorStop(0.8, '#990033');
+            gradient.addColorStop(1, '#330011');
+
+            ctx.fillStyle = gradient;
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#ff3366';
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Показываем поздравление
+            messageEl.classList.add('show');
+        }
+
+        // Запускаем анимацию
+        drawHeartLine();
+
+        // Если хочется перезапустить анимацию по клику
+        canvas.addEventListener('click', () => {
+            if (!heartFilled) return;
+            
+            // Маленький сюрприз — блёстки
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const x = 300 + (Math.random() - 0.5) * 200;
+                    const y = 250 + (Math.random() - 0.5) * 200;
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.random() * 4 + 1, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsl(${Math.random() * 30 + 330}, 100%, 70%)`;
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                }, i * 20);
+            }
+        });
+    </script>
+</body>
+</html>
